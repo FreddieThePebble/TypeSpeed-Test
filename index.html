@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Speed Typing Test</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/logo.png" type="image/png">
   <style>
     /* General Styles */
     body {
@@ -117,6 +118,19 @@
       bottom: 20px;
       left: 20px;
     }
+
+    /* Popup for link copied */
+    #popup {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2ecc71;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -129,13 +143,14 @@
   </div>
   <div id="result"></div>
   <div id="icons-row">
-    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/restart.png" alt="Restart Icon" onclick="handleIconClick(() => window.location.href='https://freddiethepebble.github.io/TypeSpeed-Test/')" />
+    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/restart.png" alt="Restart Icon" onclick="handleIconClick(redirectToURL)" />
     <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/share.png" alt="Share Icon" onclick="handleIconClick(copyToClipboard)" />
-    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/rickroll.png" alt="Rickroll Icon" onclick="handleIconClick(() => window.open('https://www.youtube.com/watch?v=pqPWVOgoYXc', '_blank'))" />
-    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/exit.png" alt="Exit Icon" onclick="handleIconClick(() => window.location.href='https://bit.ly/PebbleGames')" />
+    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/rickroll.png" alt="Rickroll Icon" onclick="handleIconClick(openRickroll)" />
+    <img src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/exit.png" alt="Exit Icon" onclick="handleIconClick(redirectToExitLink)" />
   </div>
   <img id="info-icon" src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/information.png" alt="Info Icon" />
   <img id="music-icon" src="https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/musicOff.png" alt="Music Off Icon" />
+  <div id="popup">Link copied</div>
 
   <script>
     const words = ["quick", "brown", "fox", "jumps", "over", "lazy", "dog"];
@@ -147,6 +162,7 @@
     const typeSfx = new Audio("https://github.com/FreddieThePebble/TypeSpeed-Test/raw/refs/heads/main/ui/sfx/type.mp3");
     const clickSfx = new Audio("https://github.com/FreddieThePebble/TypeSpeed-Test/raw/refs/heads/main/ui/sfx/click.mp3");
     const toggleSfx = new Audio("https://github.com/FreddieThePebble/TypeSpeed-Test/raw/refs/heads/main/ui/sfx/toggle.mp3");
+    const startSfx = new Audio("https://github.com/FreddieThePebble/TypeSpeed-Test/raw/refs/heads/main/ui/sfx/start.mp3");
 
     const startButton = document.getElementById("start-button");
     const countdownDiv = document.getElementById("countdown");
@@ -157,11 +173,14 @@
     const iconsRow = document.getElementById("icons-row");
     const infoIcon = document.getElementById("info-icon");
     const musicIcon = document.getElementById("music-icon");
+    const popup = document.getElementById("popup");
 
     function startTest() {
       startButton.style.display = "none";
       infoIcon.style.display = "none"; 
       musicIcon.style.display = "none"; 
+      
+      startSfx.play();
       countdown(4);
     }
 
@@ -207,26 +226,42 @@
       }
     }
 
-    function showResult(totalTime, avgTimePerLetter) {
-      wordDiv.style.display = "none";
-      inputContainer.style.display = "none";
+    function showResult(totalTime, averageTimePerLetter) {
       resultDiv.innerHTML = `
-        <p><strong>Total Time:</strong> ${totalTime} seconds</p>
-        <p><strong>Average Time Per Letter:</strong> ${avgTimePerLetter} seconds</p>
+        <p>Finished! Time: ${totalTime}s</p>
+        <p>Avg. Time per Letter: ${averageTimePerLetter}s</p>
       `;
+      doneSfx.play();
       iconsRow.style.display = "flex";
-      if (sfxEnabled) doneSfx.play();
+    }
+
+    function handleIconClick(action) {
+      clickSfx.play();
+      action();
+    }
+
+    function redirectToURL() {
+      window.location.href = "https://freddiethepebble.github.io/TypeSpeed-Test/";
     }
 
     function copyToClipboard() {
       const url = "https://freddiethepebble.github.io/TypeSpeed-Test/";
       navigator.clipboard.writeText(url);
-      alert("Link copied!");
+      popup.style.display = "block";
+      setTimeout(() => popup.style.display = "none", 3000);
+    }
+
+    function openRickroll() {
+      window.open("https://www.youtube.com/watch?v=pqPWVOgoYXc", "_blank");
+    }
+
+    function redirectToExitLink() {
+      window.location.href = "https://sites.google.com/view/pepplegames";
     }
 
     function toggleMusic() {
       sfxEnabled = !sfxEnabled;
-      musicIcon.src = sfxEnabled 
+      musicIcon.src = sfxEnabled
         ? "https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/musicOn.png"
         : "https://raw.githubusercontent.com/FreddieThePebble/TypeSpeed-Test/refs/heads/main/ui/images/musicOff.png";
       if (sfxEnabled) {
@@ -235,7 +270,7 @@
     }
 
     startButton.addEventListener("click", startTest);
-    infoIcon.addEventListener("click", () => window.open('https://github.com/FreddieThePebble/TypeSpeed-Test/blob/main/instructions.pdf', '_blank'));
+    infoIcon.addEventListener("click", () => window.open('https://github.com/FreddieThePebble/TypeSpeed-Test/blob/main/info.txt', '_blank'));
     musicIcon.addEventListener("click", toggleMusic);
   </script>
 </body>
